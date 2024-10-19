@@ -1,12 +1,12 @@
 import { IncomingMessage, ServerResponse } from 'http';
-import { db } from 'src/db';
-import { users } from 'src/db/users/users';
-import { EErrorMessage } from 'src/types/enums/errors';
-import { EStatusCode } from 'src/types/enums/statusCode';
-import { IUser } from 'src/types/interfaces/users';
+import { db } from '../db';
+import { users } from '../db/users/users';
+import { EErrorMessage } from '../types/enums/errors';
+import { EStatusCode } from '../types/enums/statusCode';
+import { IUser } from '../types/interfaces/users';
 import { v4, validate } from 'uuid';
 
-const userValidation = (username: string, age: number, hobbies: string[]) =>
+const isUserValid = (username: string, age: number, hobbies: string[]) =>
     !username ||
     typeof username !== "string" ||
     typeof age !== "number" ||
@@ -66,7 +66,7 @@ export const create = async (request: IncomingMessage, response: ServerResponse)
             try {
                 const { username, age, hobbies } = JSON.parse(body);
 
-                if (!userValidation(username, age, hobbies)) {
+                if (isUserValid(username, age, hobbies)) {
                     response.writeHead(EStatusCode.BAD_REQUEST, { 'Content-Type': 'application/json' });
                     response.end(JSON.stringify({ message: EErrorMessage.MISSING_FIELDS }));
                     return;
@@ -126,7 +126,7 @@ export const update = async (request: IncomingMessage, response: ServerResponse,
         request.on('end', () => {
             try {
                 const { username, age, hobbies } = JSON.parse(body);
-                if (userValidation(username, age, hobbies)) {
+                if (isUserValid(username, age, hobbies)) {
                     response.writeHead(EStatusCode.BAD_REQUEST, { "Content-Type": "application/json" });
                     response.end(JSON.stringify({ message: EErrorMessage.MISSING_FIELDS }));
 
