@@ -5,6 +5,7 @@ import { EErrorMessage } from '../types/enums/errors';
 import { EStatusCode } from '../types/enums/statusCode';
 import { IUser } from '../types/interfaces/users';
 import { v4, validate } from 'uuid';
+import cluster from 'cluster';
 
 const isUserValid = (username: string, age: number, hobbies: string[]) =>
     !username ||
@@ -81,6 +82,10 @@ export const create = async (request: IncomingMessage, response: ServerResponse)
 
                 users.push(newUser);
 
+                if (cluster.isWorker) {
+                    process.send({ type: "updateUsers", data: users });
+                }
+
                 response.writeHead(EStatusCode.CREATED, { "Content-Type": "application/json" });
                 response.end(JSON.stringify(newUser));
             } catch {
@@ -135,6 +140,10 @@ export const update = async (request: IncomingMessage, response: ServerResponse,
 
                 users[currentUserIndex] = { ...users[currentUserIndex], ...{ username, age, hobbies } };
 
+                if (cluster.isWorker) {
+                    process.send({ type: "updateUsers", data: users });
+                }
+
                 response.writeHead(EStatusCode.OK, { "Content-Type": "application/json" });
                 response.end(JSON.stringify(users[currentUserIndex]));
             } catch {
@@ -167,12 +176,17 @@ export const deleteUser = async (_: IncomingMessage, response: ServerResponse, i
             response.end(JSON.stringify({ message: EErrorMessage.USER_NOT_FOUND }));
         } else {
             users.splice(userIndex, 1);
+
+            if (cluster.isWorker) {
+                process.send({ type: "updateUsers", data: users });
+            }
+
             response.writeHead(EStatusCode.NO_CONTENT);
             response.end();
         }
     } catch (error) {
         console.error(EErrorMessage.INTERNAL_SERVER_ERROR);
-        
+
         response.writeHead(EStatusCode.INTERNAL_SERVER_ERROR, { "Content-Type": "application/json" });
         response.end(JSON.stringify({ message: EErrorMessage.INTERNAL_SERVER_ERROR }));
     }
