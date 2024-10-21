@@ -66,3 +66,59 @@ describe('Testing success cases', () => {
         expect(statusCode).toBe(EStatusCode.NO_CONTENT);
     });
 });
+
+describe('Testing error messages', () => {
+    it('Should return an error for trying to get user with invalid uuid', async () => {
+        await createUser();
+
+        const { statusCode, body: { message } } = await request.get(`/api/users/invalid-uuid`);
+
+        expect(statusCode).toBe(EStatusCode.BAD_REQUEST);
+        expect(message).toEqual(EErrorMessage.INVALID_USER_ID);
+    });
+
+    it('Should return an error for trying to get user with undefined user', async () => {
+        await createUser();
+
+        const { statusCode, body: { message } } = await request.get(`/api/users/${v4()}`);
+
+        expect(statusCode).toBe(EStatusCode.NOT_FOUND);
+        expect(message).toEqual(EErrorMessage.USER_NOT_FOUND);
+    });
+
+    it('Should return an error for trying to update user with invalid uuid', async () => {
+        await createUser();
+
+        const { statusCode, body: { message } } = await request.put('/api/users/invalid-uuid').send({ username: 'Test', age: 20, hobbies: [] });
+
+        expect(statusCode).toBe(EStatusCode.BAD_REQUEST);
+        expect(message).toEqual(EErrorMessage.INVALID_USER_ID);
+    });
+
+    it('Should return an error for trying to update user with non exists uuid', async () => {
+        await createUser();
+
+        const { statusCode, body: { message } } = await request.put(`/api/users/${v4()}`).send({ username: 'Test', age: 20, hobbies: [] });
+
+        expect(statusCode).toBe(EStatusCode.NOT_FOUND);
+        expect(message).toEqual(EErrorMessage.USER_NOT_FOUND);
+    });
+
+    it('Should return an error for trying to delete user with invalid uuid', async () => {
+        await createUser();
+
+        const { statusCode, body: { message } } = await request.delete(`/api/users/invalid-uuid`);
+
+        expect(statusCode).toBe(EStatusCode.BAD_REQUEST);
+        expect(message).toEqual(EErrorMessage.INVALID_USER_ID);
+    });
+
+    it('Should return an error for trying to delete user with non exists uuid', async () => {
+        await createUser();
+
+        const { statusCode, body: { message } } = await request.delete(`/api/users/${v4()}`);
+
+        expect(statusCode).toBe(EStatusCode.NOT_FOUND);
+        expect(message).toEqual(EErrorMessage.USER_NOT_FOUND);
+    });
+});
