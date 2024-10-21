@@ -122,3 +122,80 @@ describe('Testing error messages', () => {
         expect(message).toEqual(EErrorMessage.USER_NOT_FOUND);
     });
 });
+
+describe('Testing db fields', () => {
+    it('Should return an error on missing "username" fields', async () => {
+        const wrongUser = {
+            age: 20,
+            hobbies: ['something', 'new'],
+        };
+
+        const { statusCode, body: { message } } = await request.post('/api/users').send(wrongUser);
+
+        expect(statusCode).toBe(EStatusCode.BAD_REQUEST);
+        expect(message).toEqual(EErrorMessage.MISSING_FIELDS);
+    });
+
+    it('Should return an error on missing "age" fields', async () => {
+        const wrongUser = {
+            username: 'John',
+            hobbies: ['something', 'new'],
+        };
+
+        const { statusCode, body: { message } } = await request.post('/api/users').send(wrongUser);
+
+        expect(statusCode).toBe(EStatusCode.BAD_REQUEST);
+        expect(message).toEqual(EErrorMessage.MISSING_FIELDS);
+    });
+
+    it('Should return an error on missing "hobbies" fields', async () => {
+        const wrongUser = {
+            username: 'John',
+            age: 20,
+        };
+
+        const { statusCode, body: { message } } = await request.post('/api/users').send(wrongUser);
+
+        expect(statusCode).toBe(EStatusCode.BAD_REQUEST);
+        expect(message).toEqual(EErrorMessage.MISSING_FIELDS);
+    });
+
+    it('Should return an error on wrong data type "username" fields', async () => {
+        const wrongUser = {
+            username: 0,
+            age: 20,
+            hobbies: ['something'],
+        };
+
+        const { statusCode, body: { message } } = await request.post('/api/users').send(wrongUser);
+
+        expect(statusCode).toBe(EStatusCode.BAD_REQUEST);
+        expect(message).toEqual(EErrorMessage.MISSING_FIELDS);
+    });
+
+    it('Should return an error on wrong data type "age" fields', async () => {
+        const wrongUser = {
+            username: 'John',
+            age: '20',
+            hobbies: ['something'],
+        };
+
+        const { statusCode, body: { message } } = await request.post('/api/users').send(wrongUser);
+
+        expect(statusCode).toBe(EStatusCode.BAD_REQUEST);
+        expect(message).toEqual(EErrorMessage.MISSING_FIELDS);
+    });
+
+    it('Should return an error on wrong data type "hobbies" fields', async () => {
+        const wrongUser = {
+            username: 'John',
+            age: 20,
+            hobbies: false,
+        };
+
+        const { statusCode, body: { message } } = await request.post('/api/users').send(wrongUser);
+
+        expect(statusCode).toBe(EStatusCode.BAD_REQUEST);
+        expect(message).toEqual(EErrorMessage.MISSING_FIELDS);
+    });
+});
